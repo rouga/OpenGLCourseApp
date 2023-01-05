@@ -1,11 +1,28 @@
 #include <stdio.h>
 #include <iostream>
+#include <string>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 constexpr GLint gWidth = 1280;
 constexpr GLint gHeight = 720;
+
+GLuint gVAO, gVBO, gShader;
+
+void CreateTriangle() {
+	GLfloat wVertices[] = {
+		-1.0f, -1.0f, 0.0,
+		1.0f, -1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f
+	};
+
+	glGenVertexArrays(1, &gVAO);
+	glBindVertexArray(gVAO);
+
+	glGenBuffers(1, &gVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, gVBO);
+}
 
 int main()
 {
