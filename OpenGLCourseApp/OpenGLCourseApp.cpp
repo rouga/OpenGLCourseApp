@@ -1,25 +1,36 @@
-#include <stdio.h>
-#include <iostream>
-#include <string>
-
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <stdio.h>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <iostream>
+#include <string>
 
 constexpr GLint gWidth = 1280;
 constexpr GLint gHeight = 720;
 
-GLuint gVAO, gVBO, gProgram;
+GLuint gVAO, gVBO, gProgram, gUniformModel;
+
+bool direction = true;
+float triOffset = 0.0f;
+float triMaxOffset = 0.5;
+float triIncrement = 0.002f;
 
 // Vertex Shader
-static const char* vShader = " \n\
+static const char* vShader =
+    " \n\
 #version 460  \n\
+uniform mat4 modelMatrix; \n\
 layout (location=0) in vec3 pos; \n\
 void main() {  \n\
-gl_Position = vec4(0.8*pos.x, 0.8*pos.y, pos.z, 1.0); \n\
+gl_Position = modelMatrix * vec4(0.5*pos.x, 0.5*pos.y, pos.z, 1.0); \n\
 }";
 
 // Fragment Shader
-static const char* fShader = " \n\
+static const char* fShader =
+    " \n\
 #version 460  \n\
 out vec4 color; \n\
 void main() {  \n\
@@ -27,145 +38,152 @@ color = vec4(1.0f, 0.0f, 0.0f, 1.0); \n\
 }";
 
 void AddShader(GLuint iProgram, const char* iShaderCode, GLenum iShaderType) {
+  GLuint wShader = glCreateShader(iShaderType);
 
-	GLuint wShader = glCreateShader(iShaderType);
+  const GLchar* wCode[1];
+  wCode[0] = iShaderCode;
 
-	const GLchar* wCode[1];
-	wCode[0] = iShaderCode;
+  GLint wCodeLength[1];
+  wCodeLength[0] = strlen(iShaderCode);
 
-	GLint wCodeLength[1];
-	wCodeLength[0] = strlen(iShaderCode);
+  glShaderSource(wShader, 1, wCode, wCodeLength);
+  glCompileShader(wShader);
 
-	glShaderSource(wShader, 1, wCode, wCodeLength);
-	glCompileShader(wShader);
+  GLint wResult = 0;
+  GLchar wLog[512] = {0};
 
-	GLint wResult = 0;
-	GLchar wLog[512] = { 0 };
+  glGetShaderiv(wShader, GL_COMPILE_STATUS, &wResult);
+  if (!wResult) {
+    glGetShaderInfoLog(gProgram, sizeof(wLog), NULL, wLog);
+    std::cerr << "Error Compiling Shader Type  : " << iShaderType << "\n"
+              << wLog;
+  }
 
-	glGetShaderiv(wShader, GL_COMPILE_STATUS, &wResult);
-	if (!wResult) {
-		glGetShaderInfoLog(gProgram, sizeof(wLog), NULL, wLog);
-		std::cerr << "Error Compiling Shader Type  : " << iShaderType << "\n"
-			<< wLog;
-	}
-
-	glAttachShader(gProgram, wShader);
-
+  glAttachShader(gProgram, wShader);
 }
 
 void CompileShaders() {
-	gProgram = glCreateProgram();
-	if (!gProgram) {
-		std::cerr << "Error creating shader program!";
-		glfwTerminate();
-	}
+  gProgram = glCreateProgram();
+  if (!gProgram) {
+    std::cerr << "Error creating shader program!";
+    glfwTerminate();
+  }
 
-	AddShader(gProgram, vShader, GL_VERTEX_SHADER);
-	AddShader(gProgram, fShader, GL_FRAGMENT_SHADER);
+  AddShader(gProgram, vShader, GL_VERTEX_SHADER);
+  AddShader(gProgram, fShader, GL_FRAGMENT_SHADER);
 
-	GLint wResult = 0;
-	GLchar wLog[512] = { 0 };
+  GLint wResult = 0;
+  GLchar wLog[512] = {0};
 
-	glLinkProgram(gProgram);
-	glGetProgramiv(gProgram, GL_VALIDATE_STATUS, &wResult);
-	if (!wResult) {
-		glGetProgramInfoLog(gProgram, sizeof(wLog), NULL, wLog);
-		std::cerr << "Error Linking program : " << wLog;
-	}
+  glLinkProgram(gProgram);
+  glGetProgramiv(gProgram, GL_VALIDATE_STATUS, &wResult);
+  if (!wResult) {
+    glGetProgramInfoLog(gProgram, sizeof(wLog), NULL, wLog);
+    std::cerr << "Error Linking program : " << wLog;
+  }
 
-	glValidateProgram(gProgram);
-	glGetProgramiv(gProgram, GL_LINK_STATUS, &wResult);
-	if (!wResult) {
-		glGetProgramInfoLog(gProgram, sizeof(wLog), NULL, wLog);
-		std::cerr << "Error Validating program : " << wLog;
-	}
+  glValidateProgram(gProgram);
+  glGetProgramiv(gProgram, GL_LINK_STATUS, &wResult);
+  if (!wResult) {
+    glGetProgramInfoLog(gProgram, sizeof(wLog), NULL, wLog);
+    std::cerr << "Error Validating program : " << wLog;
+  }
+
+  gUniformModel = glGetUniformLocation(gProgram, "modelMatrix");
 }
 
 void CreateTriangle() {
-	GLfloat wVertices[] = {
-		-1.0f, -1.0f, 0.0,
-		1.0f, -1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f
-	};
+  GLfloat wVertices[] = {-1.0f, -1.0f, 0.0,  1.0f, -1.0f,
+                         0.0f,  0.0f,  1.0f, 0.0f};
 
-	glGenVertexArrays(1, &gVAO);
-	glBindVertexArray(gVAO);
+  glGenVertexArrays(1, &gVAO);
+  glBindVertexArray(gVAO);
 
-	glGenBuffers(1, &gVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, gVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(wVertices), wVertices, GL_STATIC_DRAW);
+  glGenBuffers(1, &gVBO);
+  glBindBuffer(GL_ARRAY_BUFFER, gVBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(wVertices), wVertices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(0);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindVertexArray(0);
 }
 
-// 
+//
 
-int main()
-{
-	if (!glfwInit())
-	{
-		std::cerr << "GLFW Initialization Failed!";
-		glfwTerminate();
-		return 1;
-	}
+int main() {
+  if (!glfwInit()) {
+    std::cerr << "GLFW Initialization Failed!";
+    glfwTerminate();
+    return 1;
+  }
 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-	GLFWwindow* wMainWindow = glfwCreateWindow(gWidth, gHeight, "Test Window", NULL, NULL);
-	if (!wMainWindow)
-	{
-		std::cerr << "GLFW Window Creation Failed !";
-		return 1;
-	}
+  GLFWwindow* wMainWindow =
+      glfwCreateWindow(gWidth, gHeight, "Test Window", NULL, NULL);
+  if (!wMainWindow) {
+    std::cerr << "GLFW Window Creation Failed !";
+    return 1;
+  }
 
-	// Get Buffer size information
-	int wBufferWidth, wBufferHeight;
-	glfwGetFramebufferSize(wMainWindow, &wBufferWidth, &wBufferHeight);
+  // Get Buffer size information
+  int wBufferWidth, wBufferHeight;
+  glfwGetFramebufferSize(wMainWindow, &wBufferWidth, &wBufferHeight);
 
-	// Set Context for GLEW to use
-	glfwMakeContextCurrent(wMainWindow);
+  // Set Context for GLEW to use
+  glfwMakeContextCurrent(wMainWindow);
 
-	// Allow modern extension features
-	glewExperimental = GL_TRUE;
+  // Allow modern extension features
+  glewExperimental = GL_TRUE;
 
-	if (glewInit() != GLEW_OK)
-	{
-		std::cerr << "GLEW Initialization Failed!";
-		glfwDestroyWindow(wMainWindow);
-		glfwTerminate();
-		return 1;
-	}
+  if (glewInit() != GLEW_OK) {
+    std::cerr << "GLEW Initialization Failed!";
+    glfwDestroyWindow(wMainWindow);
+    glfwTerminate();
+    return 1;
+  }
 
-	// Setup Viewport
-	glViewport(0, 0, wBufferWidth, wBufferHeight);
+  // Setup Viewport
+  glViewport(0, 0, wBufferWidth, wBufferHeight);
 
-	CreateTriangle();
-	CompileShaders();
+  CreateTriangle();
+  CompileShaders();
 
-	// Loop Until closed
-	while (!glfwWindowShouldClose(wMainWindow))
-	{
-		glfwPollEvents();
+  // Loop Until closed
+  while (!glfwWindowShouldClose(wMainWindow)) {
+    glfwPollEvents();
+    if (direction) {
+      triOffset += triIncrement;
+    } else {
+      triOffset -= triIncrement;
+    }
 
-		// Clear Window
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+    if (abs(triOffset) > triMaxOffset) {
+      direction = !direction;
+    }
 
-		glUseProgram(gProgram);
-		glBindVertexArray(gVAO);
+    // Clear Window
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
 
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+    glUseProgram(gProgram);
 
-		glBindVertexArray(0);
-		glUseProgram(0);
+    glm::mat4 wModel(1.0f);
+    wModel = glm::translate(wModel, glm::vec3(triOffset, triOffset,0.f));
+    glUniformMatrix4fv(gUniformModel, 1, GL_FALSE, glm::value_ptr(wModel));
 
-		glfwSwapBuffers(wMainWindow);
-	}
+    glBindVertexArray(gVAO);
+
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    glBindVertexArray(0);
+    glUseProgram(0);
+
+    glfwSwapBuffers(wMainWindow);
+  }
 }
