@@ -174,7 +174,9 @@ int main() {
     glUseProgram(gProgram);
 
     glm::mat4 wModel(1.0f);
-    wModel = glm::translate(wModel, glm::vec3(triOffset, triOffset,0.f));
+    wModel = glm::translate(wModel, glm::vec3(triOffset, triOffset, 0.f));
+    wModel = glm::rotate(wModel, glm::radians(triOffset*100), glm::vec3(0.f, 0.f, 1.f));
+
     glUniformMatrix4fv(gUniformModel, 1, GL_FALSE, glm::value_ptr(wModel));
 
     glBindVertexArray(gVAO);
