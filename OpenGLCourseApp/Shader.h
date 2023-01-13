@@ -10,6 +10,9 @@ public:
 	Shader() {};
 
 	void CreateFromString(const char* iVertexCode, const char* iFragmentCode);
+	void CreateFromFiles(const char* iVertexFile, const char* iFragmentFile);
+
+	std::string ReadFile(const char* iFile);
 
 	GLuint GetProjectionLocation();
 	GLuint GetModelLocation();
