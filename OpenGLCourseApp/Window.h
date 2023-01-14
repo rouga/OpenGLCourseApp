@@ -34,10 +34,10 @@ class Window {
   GLint mHeight = 720;
   GLint mBufferWidth, mBufferHeight;
 
-  GLfloat mLastX;
-  GLfloat mLastY;
-  GLfloat mDeltaX;
-  GLfloat mDeltaY;
+  GLfloat mLastX = 0;
+  GLfloat mLastY = 0;
+  GLfloat mDeltaX = 0;
+  GLfloat mDeltaY = 0;
   bool mMouseFirstMovement = true;
 
   const static int mNumKeys = 512;

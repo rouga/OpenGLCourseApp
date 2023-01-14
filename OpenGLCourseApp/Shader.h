@@ -15,8 +15,9 @@ class Shader {
 
   std::string ReadFile(const char* iFile);
 
-  GLuint GetProjectionLocation();
   GLuint GetModelLocation();
+  GLuint GetViewLocation();
+  GLuint GetProjectionLocation();
 
   void UseShader();
   void ClearShader();
@@ -28,6 +29,8 @@ class Shader {
   void AddShader(GLuint iProgram, const char* iShaderCode, GLenum iShaderType);
 
   GLuint mShaderID = 0;
-  GLuint mUniformProjection = 0;
   GLuint mUniformModel = 0;
+  GLuint mUniformView = 0;
+  GLuint mUniformProjection = 0;
+ 
 };

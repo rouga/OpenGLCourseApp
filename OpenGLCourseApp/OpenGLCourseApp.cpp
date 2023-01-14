@@ -9,13 +9,17 @@
 #include <string>
 #include <vector>
 
+#include "Camera.h"
 #include "Mesh.h"
 #include "Shader.h"
 #include "Window.h"
 
 std::vector<Mesh*> gMeshList;
 std::vector<Shader*> gShaderList;
+Camera gCamera{glm::vec3{0.f, 0.f, 0.f}, glm::vec3{0.f, 1.f, 0.0f}, -90.f, 0.f};
 
+double gDeltaTime = 0.f;
+double gLastCounter = 0.f;
 float triOffset = 0.0f;
 float triIncrement = 0.002f;
 
@@ -43,7 +47,7 @@ void CreateShaders() {
 }
 
 int main() {
-  Window wWnd(1000, 1000);
+  Window wWnd(1600, 1000);
   wWnd.Initialize();
 
   CreateObjects();
@@ -56,8 +60,12 @@ int main() {
 
   // Loop Until closed
   while (!glfwWindowShouldClose(wWnd.GetGLFWWindow())) {
-    glfwPollEvents();
+    GLfloat wCurrentCounter = glfwGetTime();
+    gDeltaTime = wCurrentCounter - gLastCounter;
+    gLastCounter = wCurrentCounter;
 
+    glfwPollEvents();
+    gCamera.Update(wWnd.GetKeysState(), wWnd.GetDeltaX(), wWnd.GetDeltaY(), gDeltaTime);
     triOffset += triIncrement;
 
     // Clear Window
@@ -68,6 +76,8 @@ int main() {
 
     glUniformMatrix4fv(gShaderList[0]->GetProjectionLocation(), 1, GL_FALSE,
                        glm::value_ptr(wProjectionMatrix));
+    glUniformMatrix4fv(gShaderList[0]->GetViewLocation(), 1, GL_FALSE,
+                       glm::value_ptr(gCamera.ComputViewMatrix()));
 
     glm::mat4 wModel(1.0f);
 
