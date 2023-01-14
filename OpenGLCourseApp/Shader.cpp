@@ -5,8 +5,8 @@ void Shader::CreateFromString(const char* iVertexCode,
   CompileShader(iVertexCode, iFragmentCode);
 }
 
-void Shader::CreateFromFiles(const char* iVertexFile, const char* iFragmentFile)
-{
+void Shader::CreateFromFiles(const char* iVertexFile,
+                             const char* iFragmentFile) {
   std::string wVertexString = ReadFile(iVertexFile);
   std::string wFragmentString = ReadFile(iFragmentFile);
 
