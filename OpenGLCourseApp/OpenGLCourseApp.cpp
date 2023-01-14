@@ -11,16 +11,12 @@
 
 #include "Mesh.h"
 #include "Shader.h"
-
-constexpr GLint gWidth = 1280;
-constexpr GLint gHeight = 720;
+#include "Window.h"
 
 std::vector<Mesh*> gMeshList;
 std::vector<Shader*> gShaderList;
 
-bool direction = true;
 float triOffset = 0.0f;
-float triMaxOffset = 0.5;
 float triIncrement = 0.002f;
 
 // Vertex Shader
@@ -47,67 +43,25 @@ void CreateShaders() {
 }
 
 int main() {
-  if (!glfwInit()) {
-    std::cerr << "GLFW Initialization Failed!";
-    glfwTerminate();
-    return 1;
-  }
-
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
-  GLFWwindow* wMainWindow =
-      glfwCreateWindow(gWidth, gHeight, "Test Window", NULL, NULL);
-  if (!wMainWindow) {
-    std::cerr << "GLFW Window Creation Failed !";
-    return 1;
-  }
-
-  // Get Buffer size information
-  int wBufferWidth, wBufferHeight;
-  glfwGetFramebufferSize(wMainWindow, &wBufferWidth, &wBufferHeight);
-
-  // Set Context for GLEW to use
-  glfwMakeContextCurrent(wMainWindow);
-
-  // Enable Vsync
-  glfwSwapInterval(1);
-  // Allow modern extension features
-  glewExperimental = GL_TRUE;
-
-  if (glewInit() != GLEW_OK) {
-    std::cerr << "GLEW Initialization Failed!";
-    glfwDestroyWindow(wMainWindow);
-    glfwTerminate();
-    return 1;
-  }
-
-  glEnable(GL_DEPTH_TEST);
-
-  // Setup Viewport
-  glViewport(0, 0, wBufferWidth, wBufferHeight);
+  Window wWnd(1000, 1000);
+  wWnd.Initialize();
 
   CreateObjects();
   CreateShaders();
 
   glm::mat4 wProjectionMatrix = glm::perspective(
-      glm::radians(60.0f), (GLfloat)wBufferWidth / (GLfloat)wBufferHeight, 0.1f,
+      glm::radians(60.0f),
+      (GLfloat)wWnd.GetBufferWidth() / (GLfloat)wWnd.GetBufferHeight(), 0.1f,
       100.f);
 
   // Loop Until closed
-  while (!glfwWindowShouldClose(wMainWindow)) {
+  while (!glfwWindowShouldClose(wWnd.GetGLFWWindow())) {
     glfwPollEvents();
-    if (direction) {
-      triOffset += triIncrement;
-    } else {
-      triOffset -= triIncrement;
-    }
+
+    triOffset += triIncrement;
 
     // Clear Window
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     gShaderList[0]->UseShader();
@@ -133,6 +87,6 @@ int main() {
     }
     glUseProgram(0);
 
-    glfwSwapBuffers(wMainWindow);
+    glfwSwapBuffers(wWnd.GetGLFWWindow());
   }
 }
