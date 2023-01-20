@@ -38,12 +38,6 @@ std::string Shader::ReadFile(const char* iFile) {
 	return wContent;
 }
 
-GLuint Shader::GetProjectionLocation() { return mUniformProjection; }
-
-GLuint Shader::GetModelLocation() { return mUniformModel; }
-
-GLuint Shader::GetViewLocation() { return mUniformView; }
-
 void Shader::UseShader() { glUseProgram(mShaderID); }
 
 void Shader::ClearShader() {
@@ -92,6 +86,9 @@ void Shader::CompileShader(const char* iVertexCode, const char* iFragmentCode) {
 
 	mUniformDirtTex = glGetUniformLocation(mShaderID, "dirtTexture");
 	mUniformBrickTex = glGetUniformLocation(mShaderID, "brickTexture");
+
+	mUniformAmbientColour = glGetUniformLocation(mShaderID, "u_directionalLight.mColour");
+	mUniformAmbientIntensity = glGetUniformLocation(mShaderID, "u_directionalLight.mAmbientIntensity");
 
 }
 

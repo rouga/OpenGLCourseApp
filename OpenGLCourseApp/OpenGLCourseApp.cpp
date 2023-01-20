@@ -16,10 +16,12 @@
 #include "Shader.h"
 #include "Window.h"
 #include "Texture.h"
+#include "Light.h"
 
 std::vector<Mesh*> gMeshList;
 std::vector<Shader*> gShaderList;
 Camera gCamera{ glm::vec3{0.f, 0.f, 0.f}, glm::vec3{0.f, 1.f, 0.0f}, -90.f, 0.f };
+Light gMainLight{ 1.0f, 1.0f, 1.0f, 0.5f };
 
 double gDeltaTime = 0.f;
 double gLastCounter = 0.f;
@@ -83,18 +85,21 @@ int main() {
 
 		gShaderList[0]->UseShader();
 
+		// Projection and View Matrices
 		glUniformMatrix4fv(gShaderList[0]->GetProjectionLocation(), 1, GL_FALSE,
 			glm::value_ptr(wProjectionMatrix));
 		glUniformMatrix4fv(gShaderList[0]->GetViewLocation(), 1, GL_FALSE,
 			glm::value_ptr(gCamera.ComputViewMatrix()));
 
+		// Textures
 		glUniform1i(gShaderList[0]->GetDirtTexLocation(), 0);
 		wDirtTexture.Use(0);
-
-
 		glUniform1i(gShaderList[0]->GetBrickTexLocation(), 1);
 		wBrickTexture.Use(1);
 
+		// Lights
+		gMainLight.UseLight(gShaderList[0]->GetAmbientColourLocation(),
+			gShaderList[0]->GetAmbientIntensityLocation());
 
 		glm::mat4 wModel(1.0f);
 

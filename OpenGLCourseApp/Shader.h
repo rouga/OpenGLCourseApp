@@ -15,12 +15,14 @@ public:
 
 	std::string ReadFile(const char* iFile);
 
-	GLuint GetModelLocation();
-	GLuint GetViewLocation();
-	GLuint GetProjectionLocation();
+	GLuint GetModelLocation() const { return mUniformModel; }
+	GLuint GetViewLocation() const { return mUniformView; }
+	GLuint GetProjectionLocation() const { return mUniformProjection; }
+	GLuint GetAmbientColourLocation() const { return mUniformAmbientColour; }
+	GLuint GetAmbientIntensityLocation() const { return mUniformAmbientIntensity; }
 
 	GLuint GetDirtTexLocation() const { return mUniformDirtTex; }
-	GLuint GetBrickTexLocation() const {return mUniformBrickTex;}
+	GLuint GetBrickTexLocation() const { return mUniformBrickTex; }
 
 	void UseShader();
 	void ClearShader();
@@ -35,6 +37,9 @@ private:
 	GLuint mUniformModel = 0;
 	GLuint mUniformView = 0;
 	GLuint mUniformProjection = 0;
+	GLuint mUniformAmbientColour = 0;
+	GLuint mUniformAmbientIntensity = 0;
+
 
 	GLuint mUniformDirtTex = 0;
 	GLuint mUniformBrickTex = 0;
