@@ -1,11 +1,12 @@
-#version 460 
+#version 460
+
+layout (location=0) in vec3 pos;
+layout (location=1) in vec2 texCoord;
+layout (location=2) in vec3 norm;
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-
-layout (location=0) in vec3 pos;
-layout (location=1) in vec2 texCoord;
 
 out vec2 v_texCoord;
 
