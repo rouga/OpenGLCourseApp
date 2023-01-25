@@ -21,7 +21,7 @@
 std::vector<Mesh*> gMeshList;
 std::vector<Shader*> gShaderList;
 Camera gCamera{ glm::vec3{0.f, 0.f, 0.f}, glm::vec3{0.f, 1.f, 0.0f}, -90.f, 0.f };
-Light gMainLight{ 1.0f, 1.0f, 1.0f, 0.5f };
+Light gMainLight{ glm::vec3{1.0,1.0,1.0}, 1.0f,glm::vec3{1.0,1.0,1.0}, 1.0f};
 
 double gDeltaTime = 0.f;
 double gLastCounter = 0.f;
@@ -55,7 +55,7 @@ void CreateShaders() {
 }
 
 int main() {
-	Window wWnd(1600, 1000);
+	Window wWnd(1920, 1200);
 	wWnd.Initialize();
 
 	CreateObjects();
@@ -99,7 +99,7 @@ int main() {
 
 		// Lights
 		gMainLight.UseLight(gShaderList[0]->GetAmbientColourLocation(),
-			gShaderList[0]->GetAmbientIntensityLocation());
+			gShaderList[0]->GetAmbientIntensityLocation(),0,0);
 
 		glm::mat4 wModel(1.0f);
 

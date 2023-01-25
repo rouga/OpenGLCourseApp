@@ -7,6 +7,8 @@ out vec4 colour;
 struct DirectionalLight {
 	vec3 mColour;
 	float mAmbientIntensity;
+	vec3 mDirection;
+	float mDiffuseIntensity;
 };
 
 uniform sampler2D dirtTexture;
