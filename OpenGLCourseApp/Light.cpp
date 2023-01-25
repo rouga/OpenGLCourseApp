@@ -17,7 +17,7 @@ void Light::UseLight(GLuint iAmbientColourLocation,
 {
 	glUniform3f(iAmbientColourLocation, mColour.r, mColour.g, mColour.b);
 	glUniform1f(iAmbientIntensityLocation, mAmbientIntensity);
-	
+
 	glUniform3fv(iDirectionLocation, 1, glm::value_ptr(mDirection));
 	glUniform1f(iDiffuseIntensityLocation, mDiffuseIntensity);
 }

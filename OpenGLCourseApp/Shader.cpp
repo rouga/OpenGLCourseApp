@@ -90,6 +90,9 @@ void Shader::CompileShader(const char* iVertexCode, const char* iFragmentCode) {
 	mUniformAmbientColour = glGetUniformLocation(mShaderID, "u_directionalLight.mColour");
 	mUniformAmbientIntensity = glGetUniformLocation(mShaderID, "u_directionalLight.mAmbientIntensity");
 
+	mUniformDirection = glGetUniformLocation(mShaderID, "u_directionalLight.mDirection");
+	mUniformDiffuseIntensity = glGetUniformLocation(mShaderID, "u_directionalLight.mDiffuseIntensity");
+
 }
 
 void Shader::AddShader(GLuint iProgram, const char* iShaderCode,

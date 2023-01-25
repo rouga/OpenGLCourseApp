@@ -20,6 +20,8 @@ public:
 	GLuint GetProjectionLocation() const { return mUniformProjection; }
 	GLuint GetAmbientColourLocation() const { return mUniformAmbientColour; }
 	GLuint GetAmbientIntensityLocation() const { return mUniformAmbientIntensity; }
+	GLuint GetDirectionLocation() const {return mUniformDirection;}
+	GLuint GetDiffuseIntensityLocation() const {return mUniformDiffuseIntensity;}
 
 	GLuint GetDirtTexLocation() const { return mUniformDirtTex; }
 	GLuint GetBrickTexLocation() const { return mUniformBrickTex; }
@@ -39,6 +41,8 @@ private:
 	GLuint mUniformProjection = 0;
 	GLuint mUniformAmbientColour = 0;
 	GLuint mUniformAmbientIntensity = 0;
+	GLuint mUniformDirection = 0;
+	GLuint mUniformDiffuseIntensity = 0;
 
 
 	GLuint mUniformDirtTex = 0;

@@ -21,7 +21,7 @@
 std::vector<Mesh*> gMeshList;
 std::vector<Shader*> gShaderList;
 Camera gCamera{ glm::vec3{0.f, 0.f, 0.f}, glm::vec3{0.f, 1.f, 0.0f}, -90.f, 0.f };
-Light gMainLight{ glm::vec3{1.0,1.0,1.0}, 1.0f,glm::vec3{1.0,1.0,1.0}, 1.0f};
+Light gMainLight{ glm::vec3{1.0,1.0,1.0}, 0.2f, glm::vec3{2.0,-1.0,-2.0}, 1.0f };
 
 double gDeltaTime = 0.f;
 double gLastCounter = 0.f;
@@ -34,17 +34,68 @@ static const char* vShader = "shaders/shader.vert";
 // Fragment Shader
 static const char* fShader = "shaders/shader.frag";
 
+void CalcAverageNormals(unsigned int* iIndices,
+	unsigned int iIndicesCount,
+	GLfloat* iVertices,
+	unsigned int iVerticesCount,
+	unsigned int iLength,
+	unsigned int iNormalOffset)
+{
+	for (size_t i = 0; i < iIndicesCount; i += 3) {
+		unsigned int in0 = iIndices[i] * iLength;
+		unsigned int in1 = iIndices[i + 1] * iLength;
+		unsigned int in2 = iIndices[i + 2] * iLength;
+
+		glm::vec3 v1(iVertices[in1] - iVertices[in0],
+			iVertices[in1 + 1] - iVertices[in0 + 1],
+			iVertices[in1 + 2] - iVertices[in0 + 2]);
+
+		glm::vec3 v2(iVertices[in2] - iVertices[in0],
+			iVertices[in2 + 1] - iVertices[in0 + 1],
+			iVertices[in2 + 2] - iVertices[in0 + 2]);
+
+		glm::vec3 wNormal = glm::cross(v1, v2);
+		wNormal = glm::normalize(wNormal);
+
+		in0 += iNormalOffset;
+		in1 += iNormalOffset;
+		in2 += iNormalOffset;
+		iVertices[in0] += wNormal.x;
+		iVertices[in0 + 1] += wNormal.y;
+		iVertices[in0 + 2] += wNormal.z;
+
+		iVertices[in1] += wNormal.x;
+		iVertices[in1 + 1] += wNormal.y;
+		iVertices[in1 + 2] += wNormal.z;
+
+		iVertices[in2] += wNormal.x;
+		iVertices[in2 + 1] += wNormal.y;
+		iVertices[in2 + 2] += wNormal.z;
+	}
+
+	for(size_t i=0; i < iVerticesCount / iLength; i++){
+		unsigned int nOffset = i * iLength + iNormalOffset;
+		glm::vec3 vec(iVertices[nOffset], iVertices[nOffset+1], iVertices[nOffset+2]);
+		vec = glm::normalize(vec);
+		iVertices[nOffset] = vec.x;
+		iVertices[nOffset+1] = vec.y;
+		iVertices[nOffset+2] = vec.z;
+	}
+}
+
 void CreateObjects() {
-	// x, y, z, u, v
-	GLfloat wVertices[] = { -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, -1.0f, 1.0f, 0.5f, 0.0f,
-		1.0f,  -1.0f, 0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f,  0.0f, 0.5f, 1.0f };
+	// x, y, z, u, v, nx, ny, nz
+	GLfloat wVertices[] = { -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, -1.0f, 1.0f, 0.5f, 0.0f,0.0f, 0.0f, 0.0f,
+		1.0f,  -1.0f, 0.0f, 1.0f, 0.0f,0.0f, 0.0f, 0.0f,
+		0.0f, 1.0f,  0.0f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f };
 
 	unsigned int wIndices[] = { 0, 3, 1, 1, 3, 2, 2, 3, 0, 0, 1, 2 };
 
+	CalcAverageNormals(wIndices, 12, wVertices, 32, 8, 5);
+
 	Mesh* wObj = new Mesh();
-	wObj->Create(wVertices, wIndices, 20, 12);
+	wObj->Create(wVertices, wIndices, 32, 12);
 	gMeshList.push_back(wObj);
 }
 
@@ -99,7 +150,9 @@ int main() {
 
 		// Lights
 		gMainLight.UseLight(gShaderList[0]->GetAmbientColourLocation(),
-			gShaderList[0]->GetAmbientIntensityLocation(),0,0);
+			gShaderList[0]->GetAmbientIntensityLocation(),
+			gShaderList[0]->GetDirectionLocation(),
+			gShaderList[0]->GetDiffuseIntensityLocation());
 
 		glm::mat4 wModel(1.0f);
 
