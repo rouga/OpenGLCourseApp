@@ -13,6 +13,8 @@ public:
 	void Update(const std::vector<bool>& iKeyStates, GLfloat iDeltaX, GLfloat iDeltaY, GLfloat iDeltaTime);
 	glm::mat4 ComputViewMatrix();
 
+	glm::vec3 GetPosition() const {return mPosition;}
+
 private:
 	// Position vectors
 	glm::vec3 mPosition;
