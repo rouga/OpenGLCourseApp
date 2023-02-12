@@ -17,11 +17,16 @@
 #include "Window.h"
 #include "Texture.h"
 #include "Light.h"
+#include "Material.h"
 
 std::vector<Mesh*> gMeshList;
 std::vector<Shader*> gShaderList;
+
 Camera gCamera{ glm::vec3{0.f, 0.f, 0.f}, glm::vec3{0.f, 1.f, 0.0f}, -90.f, 0.f };
 Light gMainLight{ glm::vec3{1.0,1.0,1.0}, 0.2f, glm::vec3{2.0,-1.0,-2.0}, 1.0f };
+
+Material gShinyMaterial(1.0f, 32.f);
+Material gDullMaterial(0.3f, 4.f);
 
 double gDeltaTime = 0.f;
 double gLastCounter = 0.f;
@@ -73,13 +78,13 @@ void CalcAverageNormals(unsigned int* iIndices,
 		iVertices[in2 + 2] += wNormal.z;
 	}
 
-	for(size_t i=0; i < iVerticesCount / iLength; i++){
+	for (size_t i = 0; i < iVerticesCount / iLength; i++) {
 		unsigned int nOffset = i * iLength + iNormalOffset;
-		glm::vec3 vec(iVertices[nOffset], iVertices[nOffset+1], iVertices[nOffset+2]);
+		glm::vec3 vec(iVertices[nOffset], iVertices[nOffset + 1], iVertices[nOffset + 2]);
 		vec = glm::normalize(vec);
 		iVertices[nOffset] = vec.x;
-		iVertices[nOffset+1] = vec.y;
-		iVertices[nOffset+2] = vec.z;
+		iVertices[nOffset + 1] = vec.y;
+		iVertices[nOffset + 2] = vec.z;
 	}
 }
 
@@ -141,6 +146,10 @@ int main() {
 			glm::value_ptr(wProjectionMatrix));
 		glUniformMatrix4fv(gShaderList[0]->GetViewLocation(), 1, GL_FALSE,
 			glm::value_ptr(gCamera.ComputViewMatrix()));
+		glUniform3f(gShaderList[0]->GetEyePositionLocation(),
+			gCamera.GetPosition().r,
+			gCamera.GetPosition().g,
+			gCamera.GetPosition().b);
 
 		// Textures
 		glUniform1i(gShaderList[0]->GetDirtTexLocation(), 0);
@@ -166,6 +175,9 @@ int main() {
 
 			glUniformMatrix4fv(gShaderList[0]->GetModelLocation(), 1, GL_FALSE,
 				glm::value_ptr(wModel));
+
+			gShinyMaterial.Use(gShaderList[0]->GetSpecularIntensityLocation(),
+				gShaderList[0]->GetShininessLocation());
 
 			mesh->Render();
 			i++;

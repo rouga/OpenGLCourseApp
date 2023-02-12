@@ -22,6 +22,9 @@ public:
 	GLuint GetAmbientIntensityLocation() const { return mUniformAmbientIntensity; }
 	GLuint GetDirectionLocation() const {return mUniformDirection;}
 	GLuint GetDiffuseIntensityLocation() const {return mUniformDiffuseIntensity;}
+	GLuint GetSpecularIntensityLocation() const {return mUniformSpecularIntensity;}
+	GLuint GetShininessLocation() const {return mUniformShininess;}
+	GLuint GetEyePositionLocation() const {return mUniformEyePosition;}
 
 	GLuint GetDirtTexLocation() const { return mUniformDirtTex; }
 	GLuint GetBrickTexLocation() const { return mUniformBrickTex; }
@@ -43,6 +46,9 @@ private:
 	GLuint mUniformAmbientIntensity = 0;
 	GLuint mUniformDirection = 0;
 	GLuint mUniformDiffuseIntensity = 0;
+	GLuint mUniformEyePosition = 0;
+	GLuint mUniformSpecularIntensity = 0;
+	GLuint mUniformShininess = 0;
 
 
 	GLuint mUniformDirtTex = 0;

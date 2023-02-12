@@ -93,6 +93,11 @@ void Shader::CompileShader(const char* iVertexCode, const char* iFragmentCode) {
 	mUniformDirection = glGetUniformLocation(mShaderID, "u_directionalLight.mDirection");
 	mUniformDiffuseIntensity = glGetUniformLocation(mShaderID, "u_directionalLight.mDiffuseIntensity");
 
+	mUniformSpecularIntensity = glGetUniformLocation(mShaderID, "u_material.mSpecularIntensity");
+	mUniformShininess = glGetUniformLocation(mShaderID, "u_material.mShininess");
+
+	mUniformEyePosition = glGetUniformLocation(mShaderID, "u_EyePosition");
+
 }
 
 void Shader::AddShader(GLuint iProgram, const char* iShaderCode,
