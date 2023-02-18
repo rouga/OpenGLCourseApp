@@ -11,19 +11,22 @@
 #include <string>
 #include <vector>
 
+#include "CommonValues.h"
 #include "Camera.h"
 #include "Mesh.h"
 #include "Shader.h"
 #include "Window.h"
 #include "Texture.h"
-#include "Light.h"
+#include "DirectionalLight.h"
+#include "PointLight.h"
 #include "Material.h"
 
 std::vector<Mesh*> gMeshList;
 std::vector<Shader*> gShaderList;
 
 Camera gCamera{ glm::vec3{0.f, 0.f, 0.f}, glm::vec3{0.f, 1.f, 0.0f}, -90.f, 0.f };
-Light gMainLight{ glm::vec3{1.0,1.0,1.0}, 0.2f, glm::vec3{2.0,-1.0,-2.0}, 1.0f };
+DirectionalLight gDirectionalLight{ glm::vec3{1.0,1.0,1.0}, 0.2f,1.0f, glm::vec3{2.0,-1.0,-2.0} };
+PointLight gPointLights[MAX_POINT_LIGHTS];
 
 Material gShinyMaterial(1.0f, 32.f);
 Material gDullMaterial(0.3f, 4.f);
@@ -90,18 +93,34 @@ void CalcAverageNormals(unsigned int* iIndices,
 
 void CreateObjects() {
 	// x, y, z, u, v, nx, ny, nz
-	GLfloat wVertices[] = { -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+	GLfloat wPyramidVertices[] = { -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, -1.0f, 1.0f, 0.5f, 0.0f,0.0f, 0.0f, 0.0f,
 		1.0f,  -1.0f, 0.0f, 1.0f, 0.0f,0.0f, 0.0f, 0.0f,
 		0.0f, 1.0f,  0.0f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f };
 
-	unsigned int wIndices[] = { 0, 3, 1, 1, 3, 2, 2, 3, 0, 0, 1, 2 };
+	unsigned int wPyramidIndices[] = { 0, 3, 1, 1, 3, 2, 2, 3, 0, 0, 1, 2 };
 
-	CalcAverageNormals(wIndices, 12, wVertices, 32, 8, 5);
+	CalcAverageNormals(wPyramidIndices, 12, wPyramidVertices, 32, 8, 5);
 
-	Mesh* wObj = new Mesh();
-	wObj->Create(wVertices, wIndices, 32, 12);
-	gMeshList.push_back(wObj);
+	GLfloat wFloorVertices[] = { -10.f, 0.0f, -10.f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f,
+	10.0f, 0.0f, -10.f, 10.0f, 0.0f, 0.0f, -1.0f, 0.0f,
+	-10.f, 0.0f, 10.0f, 0.0f, 10.0f, 0.0f, -1.0f, 0.0f,
+	10.f, 0.0f, 10.f, 10.0f, 10.0f, 0.0f, -1.0f, 0.0f };
+
+	GLuint wFloorIndices[] = {
+	0, 2, 1,
+	1, 2, 3,
+	};
+
+
+
+	Mesh* wPyramidMesh = new Mesh();
+	wPyramidMesh->Create(wPyramidVertices, wPyramidIndices, 32, 12);
+	gMeshList.push_back(wPyramidMesh);
+
+	Mesh* wFloorMesh = new Mesh();
+	wFloorMesh->Create(wFloorVertices, wFloorIndices, 32, 6);
+	gMeshList.push_back(wFloorMesh);
 }
 
 void CreateShaders() {
@@ -114,11 +133,18 @@ int main() {
 	Window wWnd(1920, 1200);
 	wWnd.Initialize();
 
+	GLuint wPointLightCount = 0;
+	gPointLights[0] = PointLight(glm::vec3(0.f, 1.0f, 0.0f), 0.1f, 1.0f, glm::vec3(-4.f, 2.f, 0.f), 0.3f, 0.1f, 0.1f);
+	wPointLightCount++;
+	gPointLights[1] = PointLight(glm::vec3(0.f, 0.0f, 1.0f), 0.1f, 0.4f, glm::vec3(4.f, 0.f, 0.f), 0.3f, 0.2f, 0.1f);
+	wPointLightCount++;
+
 	CreateObjects();
 	CreateShaders();
 
 	Texture wBrickTexture("resources/brick.png");
 	Texture wDirtTexture("resources/dirt.png");
+	Texture wPlainTexture("resources/plain.png");
 
 	glm::mat4 wProjectionMatrix = glm::perspective(
 		glm::radians(60.0f),
@@ -151,37 +177,44 @@ int main() {
 			gCamera.GetPosition().g,
 			gCamera.GetPosition().b);
 
-		// Textures
-		glUniform1i(gShaderList[0]->GetDirtTexLocation(), 0);
-		wDirtTexture.Use(0);
-		glUniform1i(gShaderList[0]->GetBrickTexLocation(), 1);
-		wBrickTexture.Use(1);
+
 
 		// Lights
-		gMainLight.UseLight(gShaderList[0]->GetAmbientColourLocation(),
-			gShaderList[0]->GetAmbientIntensityLocation(),
-			gShaderList[0]->GetDirectionLocation(),
-			gShaderList[0]->GetDiffuseIntensityLocation());
+		gShaderList[0]->SetDirectionalLight(&gDirectionalLight);
+		gShaderList[0]->SetPointLights(&gPointLights[0], wPointLightCount);
 
 		glm::mat4 wModel(1.0f);
 
 		unsigned int i = 0;
-		for (auto mesh : gMeshList) {
-			wModel = glm::translate(wModel, glm::vec3((float)i * 0.1, (float)i * 0.1,
-				(float)i * -2 - 4.0f));
 
-			wModel = glm::rotate(wModel, glm::radians(triOffset * 100),
-				glm::vec3(0.f, 1.f, 0.f));
+		wModel = glm::translate(wModel, glm::vec3(0.0f, 0.0f, -2.5f));
 
-			glUniformMatrix4fv(gShaderList[0]->GetModelLocation(), 1, GL_FALSE,
-				glm::value_ptr(wModel));
+		wModel = glm::rotate(wModel, glm::radians(triOffset * 100),
+			glm::vec3(0.f, 1.f, 0.f));
 
-			gShinyMaterial.Use(gShaderList[0]->GetSpecularIntensityLocation(),
-				gShaderList[0]->GetShininessLocation());
+		glUniformMatrix4fv(gShaderList[0]->GetModelLocation(), 1, GL_FALSE,
+			glm::value_ptr(wModel));
 
-			mesh->Render();
-			i++;
-		}
+		// Textures
+		glUniform1i(gShaderList[0]->GetTex0Location(), 0);
+		wPlainTexture.Use(0);
+
+		gShinyMaterial.Use(gShaderList[0]->GetSpecularIntensityLocation(),
+			gShaderList[0]->GetShininessLocation());
+
+		gMeshList[0]->Render();
+
+		wModel = glm::mat4(1.0f);
+		wModel = glm::translate(wModel, glm::vec3(0.0f, -2.0f, 0.0f));
+		glUniformMatrix4fv(gShaderList[0]->GetModelLocation(), 1, GL_FALSE,
+			glm::value_ptr(wModel));
+
+		wDirtTexture.Use(0);
+		gDullMaterial.Use(gShaderList[0]->GetSpecularIntensityLocation(),
+			gShaderList[0]->GetShininessLocation());
+
+		gMeshList[1] ->Render();
+
 		glUseProgram(0);
 
 		glfwSwapBuffers(wWnd.GetGLFWWindow());

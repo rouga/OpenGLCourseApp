@@ -6,6 +6,11 @@
 #include <iostream>
 #include <string>
 
+#include "CommonValues.h"
+#include "PointLight.h"
+
+class DirectionalLight;
+
 class Shader {
 public:
 	Shader() {};
@@ -18,16 +23,19 @@ public:
 	GLuint GetModelLocation() const { return mUniformModel; }
 	GLuint GetViewLocation() const { return mUniformView; }
 	GLuint GetProjectionLocation() const { return mUniformProjection; }
-	GLuint GetAmbientColourLocation() const { return mUniformAmbientColour; }
-	GLuint GetAmbientIntensityLocation() const { return mUniformAmbientIntensity; }
-	GLuint GetDirectionLocation() const {return mUniformDirection;}
-	GLuint GetDiffuseIntensityLocation() const {return mUniformDiffuseIntensity;}
+	GLuint GetAmbientColorLocation() const { return uniformDirectionalLight.mUniformColor; }
+	GLuint GetAmbientIntensityLocation() const { return uniformDirectionalLight.mUniformAmbientIntensity; }
+	GLuint GetDirectionLocation() const {return uniformDirectionalLight.mUniformDirection;}
+	GLuint GetDiffuseIntensityLocation() const {return uniformDirectionalLight.mUniformDiffuseIntensity;}
 	GLuint GetSpecularIntensityLocation() const {return mUniformSpecularIntensity;}
 	GLuint GetShininessLocation() const {return mUniformShininess;}
 	GLuint GetEyePositionLocation() const {return mUniformEyePosition;}
 
-	GLuint GetDirtTexLocation() const { return mUniformDirtTex; }
+	GLuint GetTex0Location() const { return mUniformDirtTex; }
 	GLuint GetBrickTexLocation() const { return mUniformBrickTex; }
+
+	void SetDirectionalLight(DirectionalLight* iDirLight);
+	void SetPointLights(PointLight* iPointLights, GLuint iCount);
 
 	void UseShader();
 	void ClearShader();
@@ -35,22 +43,39 @@ public:
 	~Shader();
 
 private:
+
 	void CompileShader(const char* iVertexCode, const char* iFragmentCode);
 	void AddShader(GLuint iProgram, const char* iShaderCode, GLenum iShaderType);
+
+	GLuint mPointLightCount = 0;
+
+	struct{
+		GLuint mUniformColor;
+		GLuint mUniformAmbientIntensity;
+		GLuint mUniformDiffuseIntensity;
+		GLuint mUniformDirection;
+	} uniformDirectionalLight;
+
+	struct {
+		GLuint mUniformColor;
+		GLuint mUniformAmbientIntensity;
+		GLuint mUniformDiffuseIntensity;
+		GLuint mUniformPosition;
+		GLuint mUniformConstant;
+		GLuint mUniformLinear;
+		GLuint mUniformExponent;
+	} uniformPointLight[MAX_POINT_LIGHTS];
 
 	GLuint mShaderID = 0;
 	GLuint mUniformModel = 0;
 	GLuint mUniformView = 0;
 	GLuint mUniformProjection = 0;
-	GLuint mUniformAmbientColour = 0;
-	GLuint mUniformAmbientIntensity = 0;
-	GLuint mUniformDirection = 0;
-	GLuint mUniformDiffuseIntensity = 0;
 	GLuint mUniformEyePosition = 0;
 	GLuint mUniformSpecularIntensity = 0;
 	GLuint mUniformShininess = 0;
 
-
 	GLuint mUniformDirtTex = 0;
 	GLuint mUniformBrickTex = 0;
+
+	GLuint mUniformPointLightCount;
 };
