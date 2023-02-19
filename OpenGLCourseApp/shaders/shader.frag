@@ -7,6 +7,7 @@ in vec3 v_fragPos;
 out vec4 colour;
 
 const int MAX_POINT_LIGHTS = 3;
+const int MAX_SPOT_LIGHTS = 3;
 
 struct Light{
 	vec3 colour;
@@ -26,6 +27,13 @@ struct PointLight {
 	float constant;
 	float linear;
 	float exponent;
+	
+};
+
+struct SpotLight {
+	PointLight base;
+	vec3 direction;
+	float edge;
 	
 };
 

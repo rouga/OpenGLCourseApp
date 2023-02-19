@@ -7,9 +7,11 @@
 #include <string>
 
 #include "CommonValues.h"
-#include "PointLight.h"
 
 class DirectionalLight;
+class PointLight;
+class SpotLight;
+
 
 class Shader {
 public:
@@ -36,6 +38,7 @@ public:
 
 	void SetDirectionalLight(DirectionalLight* iDirLight);
 	void SetPointLights(PointLight* iPointLights, GLuint iCount);
+	void SetSpotLights(SpotLight* iSpotLights, GLuint iCount);
 
 	void UseShader();
 	void ClearShader();
@@ -48,6 +51,7 @@ private:
 	void AddShader(GLuint iProgram, const char* iShaderCode, GLenum iShaderType);
 
 	GLuint mPointLightCount = 0;
+	GLuint mSpotLightCount = 0;
 
 	struct{
 		GLuint mUniformColor;
@@ -66,6 +70,18 @@ private:
 		GLuint mUniformExponent;
 	} uniformPointLight[MAX_POINT_LIGHTS];
 
+	struct {
+		GLuint mUniformColor;
+		GLuint mUniformAmbientIntensity;
+		GLuint mUniformDiffuseIntensity;
+		GLuint mUniformPosition;
+		GLuint mUniformDirection;
+		GLuint mUniformConstant;
+		GLuint mUniformLinear;
+		GLuint mUniformExponent;
+		GLuint mUniformEdge;
+	} uniformSpotLight[MAX_SPOT_LIGHTS];
+
 	GLuint mShaderID = 0;
 	GLuint mUniformModel = 0;
 	GLuint mUniformView = 0;
@@ -78,4 +94,5 @@ private:
 	GLuint mUniformBrickTex = 0;
 
 	GLuint mUniformPointLightCount;
+	GLuint mUniformSpotLightCount;
 };
