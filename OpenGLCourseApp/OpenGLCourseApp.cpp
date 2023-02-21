@@ -19,6 +19,7 @@
 #include "Texture.h"
 #include "DirectionalLight.h"
 #include "PointLight.h"
+#include "SpotLight.h"
 #include "Material.h"
 
 std::vector<Mesh*> gMeshList;
@@ -27,6 +28,7 @@ std::vector<Shader*> gShaderList;
 Camera gCamera{ glm::vec3{0.f, 0.f, 0.f}, glm::vec3{0.f, 1.f, 0.0f}, -90.f, 0.f };
 DirectionalLight gDirectionalLight{ glm::vec3{1.0,1.0,1.0}, 0.2f,1.0f, glm::vec3{2.0,-1.0,-2.0} };
 PointLight gPointLights[MAX_POINT_LIGHTS];
+SpotLight gSpotLights[MAX_SPOT_LIGHTS];
 
 Material gShinyMaterial(1.0f, 32.f);
 Material gDullMaterial(0.3f, 4.f);
@@ -134,10 +136,15 @@ int main() {
 	wWnd.Initialize();
 
 	GLuint wPointLightCount = 0;
+	GLuint wSpotLightCount = 0;
+
 	gPointLights[0] = PointLight(glm::vec3(0.f, 1.0f, 0.0f), 0.1f, 1.0f, glm::vec3(-4.f, 2.f, 0.f), 0.3f, 0.1f, 0.1f);
 	wPointLightCount++;
 	gPointLights[1] = PointLight(glm::vec3(0.f, 0.0f, 1.0f), 0.1f, 0.4f, glm::vec3(4.f, 0.f, 0.f), 0.3f, 0.2f, 0.1f);
 	wPointLightCount++;
+
+	gSpotLights[0] = SpotLight(glm::vec3(1.f,1.f,1.f), 0.0f, 1.0f, glm::vec3(0.f,0.f,0.f), glm::vec3(0.f,-1.f, 0.f), 0.3f, 0.2f, 0.1f, 40.0f);
+	wSpotLightCount++;
 
 	CreateObjects();
 	CreateShaders();
@@ -177,11 +184,12 @@ int main() {
 			gCamera.GetPosition().g,
 			gCamera.GetPosition().b);
 
-
+		gSpotLights[0].SetFlash(gCamera.GetPosition(), gCamera.GetDirection());
 
 		// Lights
-		gShaderList[0]->SetDirectionalLight(&gDirectionalLight);
+		//gShaderList[0]->SetDirectionalLight(&gDirectionalLight);
 		gShaderList[0]->SetPointLights(&gPointLights[0], wPointLightCount);
+		gShaderList[0]->SetSpotLights(gSpotLights, wSpotLightCount);
 
 		glm::mat4 wModel(1.0f);
 
@@ -213,7 +221,7 @@ int main() {
 		gDullMaterial.Use(gShaderList[0]->GetSpecularIntensityLocation(),
 			gShaderList[0]->GetShininessLocation());
 
-		gMeshList[1] ->Render();
+		gMeshList[1]->Render();
 
 		glUseProgram(0);
 

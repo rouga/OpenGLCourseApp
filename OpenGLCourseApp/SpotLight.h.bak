@@ -4,7 +4,8 @@
 class SpotLight : public PointLight 
 {
 public:
-	SpotLight(){};
+	SpotLight();
+
 
 	SpotLight(glm::vec3 iRGB,
 		GLfloat iAmbientIntensity,
@@ -20,8 +21,6 @@ public:
 		GLuint iPositionLocation, GLuint iDirectionLocation,
 		GLuint iConstantLocation, GLuint iLinearLocation,
 		GLuint iExponentLocation, GLuint iEdgeLocation);
-
-	void SetFlash(glm::vec3 iPosition, glm::vec3 iDirection);
 
 private:
 	glm::vec3 mDirection = glm::vec3(0.f, -1.f, 0.f);

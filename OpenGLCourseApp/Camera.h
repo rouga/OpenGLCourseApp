@@ -14,6 +14,7 @@ public:
 	glm::mat4 ComputViewMatrix();
 
 	glm::vec3 GetPosition() const {return mPosition;}
+	glm::vec3 GetDirection() const { return mFront; }
 
 private:
 	// Position vectors
@@ -22,6 +23,7 @@ private:
 	glm::vec3 mUp;
 	glm::vec3 mRight;
 	glm::vec3 mWorldUp;
+	
 
 	// Orientation
 	GLfloat mYaw;

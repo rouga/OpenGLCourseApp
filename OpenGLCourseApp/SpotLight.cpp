@@ -11,9 +11,9 @@ SpotLight::SpotLight(glm::vec3 iRGB,
 	GLfloat iExponent,
 	GLfloat iEdge)
 	: PointLight(iRGB, iAmbientIntensity, iDiffuseIntensity, iPosition, iConstant, iLinear, iExponent),
-	mDirection(iDirection),
 	mEdge(iEdge)
 {
+	mDirection = glm::normalize(iDirection);
 	mProcessedEdge = cosf(glm::radians(mEdge));
 }
 
@@ -37,4 +37,10 @@ void SpotLight::UseLight(GLuint iAmbientColourLocation,
 	glUniform1f(iLinearLocation, mLinear);
 	glUniform1f(iExponentLocation, mExponent);
 	glUniform1f(iEdgeLocation, mProcessedEdge);
+}
+
+void SpotLight::SetFlash(glm::vec3 iPosition, glm::vec3 iDirection)
+{
+	mPosition = iPosition;
+	mDirection = iDirection;
 }
