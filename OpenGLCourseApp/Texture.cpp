@@ -3,15 +3,17 @@
 #include "Texture.h"
 
 
-Texture::Texture(const char* iFilepath) : mFilepath(iFilepath) {
-	Load();
+Texture::Texture(const char* iFilepath, bool iIsWithAlpha)
+	: mFilepath(iFilepath),
+	mIsWithAlpha(iIsWithAlpha)
+{
 }
 
 Texture::~Texture() {
 	Clear();
 }
 
-void Texture::Load() {
+bool Texture::Load() {
 
 	unsigned char* wTexData = stbi_load(mFilepath,
 		&mWidth,
@@ -22,7 +24,7 @@ void Texture::Load() {
 	stbi_set_flip_vertically_on_load(1);
 	if (!wTexData) {
 		std::cerr << "Failed to find " << mFilepath << "\n";
-		return;
+		return false;
 	}
 
 
@@ -34,19 +36,23 @@ void Texture::Load() {
 	glTextureParameteri(mTextureID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTextureParameteri(mTextureID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+	GLenum wImageFormat = mIsWithAlpha ? GL_RGBA : GL_RGB;
+
 	glTexImage2D(GL_TEXTURE_2D,
 		0,
-		GL_RGBA,
+		wImageFormat,
 		mWidth,
 		mHeight,
 		0,
-		GL_RGBA,
+		wImageFormat,
 		GL_UNSIGNED_BYTE,
 		wTexData);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	stbi_image_free(wTexData);
+
+	return true;
 }
 
 void Texture::Use(unsigned int iSlot)

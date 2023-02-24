@@ -5,10 +5,11 @@
 
 class Texture {
 public:
-	Texture(const char* iFilepath);
+	Texture(const char* iFilepath, bool iIsWithAlpha);
 	~Texture();
 
-	void Load();
+	bool Load();
+	bool LoadWithAlpha();
 	void Use(unsigned int iSlot);
 	void Clear();
 
@@ -18,4 +19,5 @@ private:
 	int mHeight = 0;
 	int mBitDepth = 0;
 	const char* mFilepath;
+	bool mIsWithAlpha;
 };

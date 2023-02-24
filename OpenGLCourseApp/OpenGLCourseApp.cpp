@@ -21,6 +21,7 @@
 #include "PointLight.h"
 #include "SpotLight.h"
 #include "Material.h"
+#include "Model.h"
 
 std::vector<Mesh*> gMeshList;
 std::vector<Shader*> gShaderList;
@@ -32,6 +33,8 @@ SpotLight gSpotLights[MAX_SPOT_LIGHTS];
 
 Material gShinyMaterial(1.0f, 32.f);
 Material gDullMaterial(0.3f, 4.f);
+
+Model gAirplane("Airplane");
 
 double gDeltaTime = 0.f;
 double gLastCounter = 0.f;
@@ -143,15 +146,21 @@ int main() {
 	gPointLights[1] = PointLight(glm::vec3(0.f, 0.0f, 1.0f), 0.1f, 0.4f, glm::vec3(4.f, 0.f, 0.f), 0.3f, 0.2f, 0.1f);
 	wPointLightCount++;
 
-	gSpotLights[0] = SpotLight(glm::vec3(1.f,1.f,1.f), 0.0f, 1.0f, glm::vec3(0.f,0.f,0.f), glm::vec3(0.f,-1.f, 0.f), 0.3f, 0.2f, 0.1f, 40.0f);
+	gSpotLights[0] = SpotLight(glm::vec3(1.f, 1.f, 1.f), 0.0f, 1.0f, glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, -1.f, 0.f), 0.3f, 0.2f, 0.1f, 40.0f);
 	wSpotLightCount++;
 
 	CreateObjects();
 	CreateShaders();
 
-	Texture wBrickTexture("resources/brick.png");
-	Texture wDirtTexture("resources/dirt.png");
-	Texture wPlainTexture("resources/plain.png");
+	Texture wBrickTexture("resources/Textures/brick.png", true);
+	Texture wDirtTexture("resources/Textures/dirt.png", true);
+	Texture wPlainTexture("resources/Textures/plain.png", true);
+
+	wBrickTexture.Load();
+	wDirtTexture.Load();
+	wPlainTexture.Load();
+
+	gAirplane.Load("resources/Models/Airplane/11803_Airplane_v1_l1.obj");
 
 	glm::mat4 wProjectionMatrix = glm::perspective(
 		glm::radians(60.0f),
@@ -184,33 +193,33 @@ int main() {
 			gCamera.GetPosition().g,
 			gCamera.GetPosition().b);
 
-		gSpotLights[0].SetFlash(gCamera.GetPosition(), gCamera.GetDirection());
+		//gSpotLights[0].SetFlash(gCamera.GetPosition(), gCamera.GetDirection());
 
 		// Lights
-		//gShaderList[0]->SetDirectionalLight(&gDirectionalLight);
+		gShaderList[0]->SetDirectionalLight(&gDirectionalLight);
 		gShaderList[0]->SetPointLights(&gPointLights[0], wPointLightCount);
-		gShaderList[0]->SetSpotLights(gSpotLights, wSpotLightCount);
+		//gShaderList[0]->SetSpotLights(gSpotLights, wSpotLightCount);
 
 		glm::mat4 wModel(1.0f);
 
 		unsigned int i = 0;
 
 		wModel = glm::translate(wModel, glm::vec3(0.0f, 0.0f, -2.5f));
-
+		wModel = glm::rotate(wModel, glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f));
 		wModel = glm::rotate(wModel, glm::radians(triOffset * 100),
-			glm::vec3(0.f, 1.f, 0.f));
+			glm::vec3(0.f, 0.f, 1.f));
+
+		wModel = glm::scale(wModel, glm::vec3(0.001, 0.001, 0.001));
 
 		glUniformMatrix4fv(gShaderList[0]->GetModelLocation(), 1, GL_FALSE,
 			glm::value_ptr(wModel));
 
 		// Textures
 		glUniform1i(gShaderList[0]->GetTex0Location(), 0);
-		wPlainTexture.Use(0);
 
 		gShinyMaterial.Use(gShaderList[0]->GetSpecularIntensityLocation(),
 			gShaderList[0]->GetShininessLocation());
-
-		gMeshList[0]->Render();
+		gAirplane.Render();
 
 		wModel = glm::mat4(1.0f);
 		wModel = glm::translate(wModel, glm::vec3(0.0f, -2.0f, 0.0f));
