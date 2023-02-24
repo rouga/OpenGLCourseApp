@@ -27,7 +27,7 @@ std::vector<Mesh*> gMeshList;
 std::vector<Shader*> gShaderList;
 
 Camera gCamera{ glm::vec3{0.f, 0.f, 0.f}, glm::vec3{0.f, 1.f, 0.0f}, -90.f, 0.f };
-DirectionalLight gDirectionalLight{ glm::vec3{1.0,1.0,1.0}, 0.2f,1.0f, glm::vec3{2.0,-1.0,-2.0} };
+DirectionalLight gDirectionalLight{ glm::vec3{1.0,1.0,1.0}, 0.2f, .5f, glm::vec3{2.0,-1.0,-2.0} };
 PointLight gPointLights[MAX_POINT_LIGHTS];
 SpotLight gSpotLights[MAX_SPOT_LIGHTS];
 
@@ -146,7 +146,7 @@ int main() {
 	gPointLights[1] = PointLight(glm::vec3(0.f, 0.0f, 1.0f), 0.1f, 0.4f, glm::vec3(4.f, 0.f, 0.f), 0.3f, 0.2f, 0.1f);
 	wPointLightCount++;
 
-	gSpotLights[0] = SpotLight(glm::vec3(1.f, 1.f, 1.f), 0.0f, 1.0f, glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, -1.f, 0.f), 0.3f, 0.2f, 0.1f, 40.0f);
+	gSpotLights[0] = SpotLight(glm::vec3(1.f, 1.f, 1.f), 0.0f, 1.0f, glm::vec3(0.f, 5.f, 0.f), glm::vec3(0.f, -1.f, 0.f), 0.3f, 0.2f, 0.1f, 40.0f);
 	wSpotLightCount++;
 
 	CreateObjects();
@@ -178,7 +178,7 @@ int main() {
 		triOffset += triIncrement;
 
 		// Clear Window
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClearColor(153.f / 255.f, 196.f / 255.f, 210.f / 255.f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		gShaderList[0]->UseShader();
@@ -193,12 +193,10 @@ int main() {
 			gCamera.GetPosition().g,
 			gCamera.GetPosition().b);
 
-		//gSpotLights[0].SetFlash(gCamera.GetPosition(), gCamera.GetDirection());
-
 		// Lights
 		gShaderList[0]->SetDirectionalLight(&gDirectionalLight);
 		gShaderList[0]->SetPointLights(&gPointLights[0], wPointLightCount);
-		//gShaderList[0]->SetSpotLights(gSpotLights, wSpotLightCount);
+		gShaderList[0]->SetSpotLights(gSpotLights, wSpotLightCount);
 
 		glm::mat4 wModel(1.0f);
 

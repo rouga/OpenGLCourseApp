@@ -78,6 +78,7 @@ void Model::LoadMesh(aiMesh* iMesh, const aiScene* iScene)
 	std::vector<GLfloat> wVertices;
 	wVertices.reserve(iMesh->mNumVertices * 8);
 	std::vector<unsigned int> wIndices;
+	wIndices.reserve(iMesh->mNumFaces*3);
 
 	for (size_t i = 0; i < iMesh->mNumVertices; i++)
 	{
