@@ -3,6 +3,7 @@
 in vec2 v_texCoord;
 in vec3 v_normal;
 in vec3 v_fragPos;
+in vec4 v_DirectionalLightSpacePos;
 
 out vec4 colour;
 
@@ -50,13 +51,26 @@ uniform PointLight u_pointLights[MAX_POINT_LIGHTS];
 uniform SpotLight u_spotLights[MAX_SPOT_LIGHTS];
 
 uniform sampler2D u_TextureSlot0;
+uniform sampler2D u_directionalShadowMap;
 uniform sampler2D brickTexture;
 
 uniform Material u_material;
 
 uniform vec3 u_EyePosition;
 
-vec4 CalcLightByDirection(Light iLight, vec3 iDirection){
+float CalcDirectionalShadowFactor(DirectionalLight iLight){
+	vec3 wProjCoords = DirectionalLightSpacePos.xyz / DirectionalLightSpacePos.w;
+	wProjCoords = (wProjCoords * 0.5) + 0.5;
+
+	float wClosestDepth = texture(u_directionalShadowMap, wProjCoords.xy).r;
+	float wModelDepth = wProjCoords.z;
+
+	float wShadow = wModelDepth > wClosestDepth ? 1.0 : 0.0;
+
+	return wShadow;
+}
+
+vec4 CalcLightByDirection(Light iLight, vec3 iDirection, float iShadowFactor){
 
 	vec4 ambientColour = vec4(iLight.colour, 1.0f) * iLight.ambientIntensity;
 
@@ -75,11 +89,12 @@ vec4 CalcLightByDirection(Light iLight, vec3 iDirection){
 			specularColor = vec4(iLight.colour * u_material.specularIntensity * specularFactor, 1.0f);
 		}
 	}
-	return (ambientColour + diffuseColor + specularColor);
+	return (ambientColour +  (1.0 - iShadowFactor) * (diffuseColor + specularColor));
 }
 
 vec4 CalcDirectionalLight() {
-	return CalcLightByDirection(u_directionalLight.base, u_directionalLight.direction);
+	float wShadowFactor = CalcDirectionalShadowFactor(u_directionalLight);
+	return CalcLightByDirection(u_directionalLight.base, u_directionalLight.direction, wShadowFactor);
 }
 
 vec4 CalcPointLight(PointLight iPointLight){
@@ -88,7 +103,7 @@ vec4 CalcPointLight(PointLight iPointLight){
 	float wDistance = length(wDirection);
 	wDirection = normalize(wDirection);
 
-	vec4 wColor = CalcLightByDirection(iPointLight.base, wDirection);
+	vec4 wColor = CalcLightByDirection(iPointLight.base, wDirection, 0.0f);
 	float wAttenuation = iPointLight.exponent * wDistance * wDistance +
 						iPointLight.linear * wDistance +
 						iPointLight.constant;
