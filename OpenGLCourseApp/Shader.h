@@ -39,6 +39,9 @@ public:
 	void SetDirectionalLight(DirectionalLight* iDirLight);
 	void SetPointLights(PointLight* iPointLights, GLuint iCount);
 	void SetSpotLights(SpotLight* iSpotLights, GLuint iCount);
+	void SetTexture(GLuint iTextureUnit);
+	void SetDirectionalShadowMap(GLuint iTextureUnit);
+	void SetDirectionalLightTransform(glm::mat4 iTransform);
 
 	void UseShader();
 	void ClearShader();
@@ -89,6 +92,9 @@ private:
 	GLuint mUniformEyePosition = 0;
 	GLuint mUniformSpecularIntensity = 0;
 	GLuint mUniformShininess = 0;
+	GLuint mUniformTexture = 0;
+	GLuint mUniformDirectionalLightTransform = 0;
+	GLuint mUniformDirectionalShadowMap = 0;
 
 	GLuint mUniformDirtTex = 0;
 	GLuint mUniformBrickTex = 0;

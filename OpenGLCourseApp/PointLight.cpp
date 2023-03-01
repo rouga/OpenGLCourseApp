@@ -9,7 +9,7 @@ PointLight::PointLight(glm::vec3 iRGB,
 	GLfloat iLinear,
 	GLfloat iExponent)
 
-	: Light(iRGB, iAmbientIntensity, iDiffuseIntensity),
+	: Light(iRGB, iAmbientIntensity, iDiffuseIntensity, 1024, 1024),
 	mPosition(iPosition),
 	mConstant(iConstant),
 	mLinear(iLinear),

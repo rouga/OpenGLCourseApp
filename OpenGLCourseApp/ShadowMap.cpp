@@ -3,10 +3,10 @@
 ShadowMap::~ShadowMap()
 {
 	if(mFBO){
-		glDeleteFramebuffers(mFBO);
+		glDeleteFramebuffers(1,&mFBO);
 	}
 
-	if(mShadowMapTexture){
+	if (mShadowMapTexture) {
 		glDeleteTextures(1, &mShadowMapTexture);
 	}
 }
@@ -16,10 +16,14 @@ bool ShadowMap::Init(GLuint iWidth, GLuint iHeight)
 	mShadowWidth = iWidth;
 	mShadowHeight = iHeight;
 
-	glGenFramebuffers(1, &mFBO);
 	glGenTextures(1, &mShadowMapTexture);
 
 	glBindTexture(GL_TEXTURE_2D, mShadowMapTexture);
+
+	glTextureParameteri(mShadowMapTexture, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTextureParameteri(mShadowMapTexture, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTextureParameteri(mShadowMapTexture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTextureParameteri(mShadowMapTexture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	
 	glTexImage2D(GL_TEXTURE_2D,
 		0,
@@ -31,11 +35,7 @@ bool ShadowMap::Init(GLuint iWidth, GLuint iHeight)
 		GL_FLOAT,
 		nullptr);
 
-	glTextureParameteri(mShadowMapTexture, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTextureParameteri(mShadowMapTexture, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTextureParameteri(mShadowMapTexture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTextureParameteri(mShadowMapTexture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
+	glGenFramebuffers(1, &mFBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
 	glFramebufferTexture2D(GL_FRAMEBUFFER,
 		GL_DEPTH_ATTACHMENT,

@@ -1,3 +1,5 @@
+#include <glm/gtc/type_ptr.hpp>
+
 #include "Shader.h"
 #include "DirectionalLight.h"
 #include "PointLight.h"
@@ -88,6 +90,21 @@ void Shader::SetSpotLights(SpotLight* iSpotLights, GLuint iCount) {
 			uniformSpotLight[i].mUniformExponent,
 			uniformSpotLight[i].mUniformEdge);
 	}
+}
+
+void Shader::SetTexture(GLuint iTextureUnit)
+{
+	glUniform1i(mUniformTexture, iTextureUnit);
+}
+
+void Shader::SetDirectionalShadowMap(GLuint iTextureUnit)
+{
+	glUniform1i(mUniformDirectionalShadowMap, iTextureUnit);
+}
+
+void Shader::SetDirectionalLightTransform(glm::mat4 iTransform)
+{
+	glUniformMatrix4fv(mUniformDirectionalLightTransform, 1, GL_FALSE, glm::value_ptr(iTransform));
 }
 
 void Shader::UseShader() { glUseProgram(mShaderID); }
@@ -207,6 +224,10 @@ void Shader::CompileShader(const char* iVertexCode, const char* iFragmentCode) {
 		snprintf(wlocBuff, sizeof(wlocBuff), "u_spotLights[%d].edge", i);
 		uniformSpotLight[i].mUniformEdge = glGetUniformLocation(mShaderID, wlocBuff);
 	}
+
+	mUniformTexture = glGetUniformLocation(mShaderID, "u_TextureSlot0");
+	mUniformDirectionalLightTransform = glGetUniformLocation(mShaderID, "u_DirectionalLightSpaceTransform");
+	mUniformDirectionalShadowMap = glGetUniformLocation(mShaderID, "u_directionalShadowMap");
 }
 
 void Shader::AddShader(GLuint iProgram, const char* iShaderCode,

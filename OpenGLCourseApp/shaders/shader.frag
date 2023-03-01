@@ -59,7 +59,7 @@ uniform Material u_material;
 uniform vec3 u_EyePosition;
 
 float CalcDirectionalShadowFactor(DirectionalLight iLight){
-	vec3 wProjCoords = DirectionalLightSpacePos.xyz / DirectionalLightSpacePos.w;
+	vec3 wProjCoords = v_DirectionalLightSpacePos.xyz / v_DirectionalLightSpacePos.w;
 	wProjCoords = (wProjCoords * 0.5) + 0.5;
 
 	float wClosestDepth = texture(u_directionalShadowMap, wProjCoords.xy).r;

@@ -26,10 +26,16 @@
 std::vector<Mesh*> gMeshList;
 std::vector<Shader*> gShaderList;
 
+Shader gDirectionalShadowShader;
+
 Camera gCamera{ glm::vec3{0.f, 0.f, 0.f}, glm::vec3{0.f, 1.f, 0.0f}, -90.f, 0.f };
-DirectionalLight gDirectionalLight{ glm::vec3{1.0,1.0,1.0}, 0.2f, .5f, glm::vec3{2.0,-1.0,-2.0} };
+DirectionalLight gDirectionalLight;
 PointLight gPointLights[MAX_POINT_LIGHTS];
 SpotLight gSpotLights[MAX_SPOT_LIGHTS];
+
+Texture gBrickTexture("resources/Textures/brick.png", true);
+Texture gDirtTexture("resources/Textures/dirt.png", true);
+Texture gPlainTexture("resources/Textures/plain.png", true);
 
 Material gShinyMaterial(1.0f, 32.f);
 Material gDullMaterial(0.3f, 4.f);
@@ -117,8 +123,6 @@ void CreateObjects() {
 	1, 2, 3,
 	};
 
-
-
 	Mesh* wPyramidMesh = new Mesh();
 	wPyramidMesh->Create(wPyramidVertices, wPyramidIndices, 32, 12);
 	gMeshList.push_back(wPyramidMesh);
@@ -132,6 +136,94 @@ void CreateShaders() {
 	Shader* sh1 = new Shader();
 	sh1->CreateFromFiles(vShader, fShader);
 	gShaderList.push_back(sh1);
+
+	gDirectionalShadowShader.CreateFromFiles("shaders/directional_shadow_map.vert",
+		"shaders/directional_shadow_map.frag");
+}
+
+void RenderScene() {
+	glm::mat4 wModel(1.0f);
+
+	unsigned int i = 0;
+
+	wModel = glm::translate(wModel, glm::vec3(0.0f, 0.0f, -2.5f));
+	wModel = glm::rotate(wModel, glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f));
+	wModel = glm::rotate(wModel, glm::radians(triOffset * 100),
+		glm::vec3(0.f, 0.f, 1.f));
+
+	wModel = glm::scale(wModel, glm::vec3(0.001, 0.001, 0.001));
+
+	glUniformMatrix4fv(gShaderList[0]->GetModelLocation(), 1, GL_FALSE,
+		glm::value_ptr(wModel));
+
+	// Textures
+	glUniform1i(gShaderList[0]->GetTex0Location(), 0);
+
+	gShinyMaterial.Use(gShaderList[0]->GetSpecularIntensityLocation(),
+		gShaderList[0]->GetShininessLocation());
+	gAirplane.Render();
+
+	wModel = glm::mat4(1.0f);
+	wModel = glm::translate(wModel, glm::vec3(0.0f, -2.0f, 0.0f));
+	glUniformMatrix4fv(gShaderList[0]->GetModelLocation(), 1, GL_FALSE,
+		glm::value_ptr(wModel));
+
+	gDirtTexture.Use(0);
+	gDullMaterial.Use(gShaderList[0]->GetSpecularIntensityLocation(),
+		gShaderList[0]->GetShininessLocation());
+
+	gMeshList[1]->Render();
+}
+
+void DirectionalShadowMapPass(DirectionalLight* iDirectionalLight)
+{
+	gDirectionalShadowShader.UseShader();
+
+	glViewport(0,0, iDirectionalLight->GetShadowMap()->GetShadowWidth(),
+		iDirectionalLight->GetShadowMap()->GetShadowHeight());
+
+	iDirectionalLight->GetShadowMap()->Write();
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	gDirectionalShadowShader.SetDirectionalLightTransform(iDirectionalLight->CalculateLightTransform());
+
+	RenderScene();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void RenderPass(glm::mat4 iProjectionMatrix, glm::mat4 iViewMatrix){
+
+	gShaderList[0]->UseShader();
+
+	// Projection and View Matrices
+	glUniformMatrix4fv(gShaderList[0]->GetProjectionLocation(), 1, GL_FALSE,
+		glm::value_ptr(iProjectionMatrix));
+	glUniformMatrix4fv(gShaderList[0]->GetViewLocation(), 1, GL_FALSE,
+		glm::value_ptr(iViewMatrix));
+	glUniform3f(gShaderList[0]->GetEyePositionLocation(),
+		gCamera.GetPosition().r,
+		gCamera.GetPosition().g,
+		gCamera.GetPosition().b);
+
+	glViewport(0,0, 1920, 1200);
+
+	// Clear Window
+	glClearColor(153.f / 255.f, 196.f / 255.f, 210.f / 255.f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Lights
+	gShaderList[0]->SetDirectionalLight(&gDirectionalLight);
+	gShaderList[0]->SetPointLights(&gPointLights[0], 2);
+	gShaderList[0]->SetSpotLights(gSpotLights, 1);
+	gShaderList[0]->SetDirectionalLightTransform(gDirectionalLight.CalculateLightTransform());
+
+	gDirectionalLight.GetShadowMap()->Read(GL_TEXTURE1);
+	gShaderList[0]->SetTexture(0);
+	gShaderList[0]->SetDirectionalShadowMap(1);
+
+	RenderScene();
+	
 }
 
 int main() {
@@ -140,6 +232,8 @@ int main() {
 
 	GLuint wPointLightCount = 0;
 	GLuint wSpotLightCount = 0;
+
+	gDirectionalLight = DirectionalLight{ glm::vec3{1.0,1.0,1.0}, 0.2f, .5f, glm::vec3{2.0,-1.0,-2.0}, 1024, 1024 };
 
 	gPointLights[0] = PointLight(glm::vec3(0.f, 1.0f, 0.0f), 0.1f, 1.0f, glm::vec3(-4.f, 2.f, 0.f), 0.3f, 0.1f, 0.1f);
 	wPointLightCount++;
@@ -152,13 +246,9 @@ int main() {
 	CreateObjects();
 	CreateShaders();
 
-	Texture wBrickTexture("resources/Textures/brick.png", true);
-	Texture wDirtTexture("resources/Textures/dirt.png", true);
-	Texture wPlainTexture("resources/Textures/plain.png", true);
-
-	wBrickTexture.Load();
-	wDirtTexture.Load();
-	wPlainTexture.Load();
+	gBrickTexture.Load();
+	gDirtTexture.Load();
+	gPlainTexture.Load();
 
 	gAirplane.Load("resources/Models/Airplane/11803_Airplane_v1_l1.obj");
 
@@ -175,60 +265,9 @@ int main() {
 
 		glfwPollEvents();
 		gCamera.Update(wWnd.GetKeysState(), wWnd.GetDeltaX(), wWnd.GetDeltaY(), gDeltaTime);
-		triOffset += triIncrement;
-
-		// Clear Window
-		glClearColor(153.f / 255.f, 196.f / 255.f, 210.f / 255.f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		gShaderList[0]->UseShader();
-
-		// Projection and View Matrices
-		glUniformMatrix4fv(gShaderList[0]->GetProjectionLocation(), 1, GL_FALSE,
-			glm::value_ptr(wProjectionMatrix));
-		glUniformMatrix4fv(gShaderList[0]->GetViewLocation(), 1, GL_FALSE,
-			glm::value_ptr(gCamera.ComputViewMatrix()));
-		glUniform3f(gShaderList[0]->GetEyePositionLocation(),
-			gCamera.GetPosition().r,
-			gCamera.GetPosition().g,
-			gCamera.GetPosition().b);
-
-		// Lights
-		gShaderList[0]->SetDirectionalLight(&gDirectionalLight);
-		gShaderList[0]->SetPointLights(&gPointLights[0], wPointLightCount);
-		gShaderList[0]->SetSpotLights(gSpotLights, wSpotLightCount);
-
-		glm::mat4 wModel(1.0f);
-
-		unsigned int i = 0;
-
-		wModel = glm::translate(wModel, glm::vec3(0.0f, 0.0f, -2.5f));
-		wModel = glm::rotate(wModel, glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f));
-		wModel = glm::rotate(wModel, glm::radians(triOffset * 100),
-			glm::vec3(0.f, 0.f, 1.f));
-
-		wModel = glm::scale(wModel, glm::vec3(0.001, 0.001, 0.001));
-
-		glUniformMatrix4fv(gShaderList[0]->GetModelLocation(), 1, GL_FALSE,
-			glm::value_ptr(wModel));
-
-		// Textures
-		glUniform1i(gShaderList[0]->GetTex0Location(), 0);
-
-		gShinyMaterial.Use(gShaderList[0]->GetSpecularIntensityLocation(),
-			gShaderList[0]->GetShininessLocation());
-		gAirplane.Render();
-
-		wModel = glm::mat4(1.0f);
-		wModel = glm::translate(wModel, glm::vec3(0.0f, -2.0f, 0.0f));
-		glUniformMatrix4fv(gShaderList[0]->GetModelLocation(), 1, GL_FALSE,
-			glm::value_ptr(wModel));
-
-		wDirtTexture.Use(0);
-		gDullMaterial.Use(gShaderList[0]->GetSpecularIntensityLocation(),
-			gShaderList[0]->GetShininessLocation());
-
-		gMeshList[1]->Render();
+		
+		DirectionalShadowMapPass(&gDirectionalLight);
+		RenderPass(wProjectionMatrix, gCamera.ComputViewMatrix());
 
 		glUseProgram(0);
 

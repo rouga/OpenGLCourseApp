@@ -16,9 +16,10 @@ public:
 	GLuint GetShadowHeight() const { return mShadowHeight; }
 
 protected:
-	GLuint mFBO = 0;
-	GLuint mShadowMapTexture = 0;
 	GLuint mShadowWidth = 0;
 	GLuint mShadowHeight = 0;
+	GLuint mFBO;
+	GLuint mShadowMapTexture;
+
 
 };
