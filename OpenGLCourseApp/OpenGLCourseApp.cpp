@@ -215,7 +215,7 @@ void RenderPass(glm::mat4 iProjectionMatrix, glm::mat4 iViewMatrix){
 	// Lights
 	gShaderList[0]->SetDirectionalLight(&gDirectionalLight);
 	gShaderList[0]->SetPointLights(&gPointLights[0], 2);
-	gShaderList[0]->SetSpotLights(gSpotLights, 1);
+	//gShaderList[0]->SetSpotLights(gSpotLights, 1);
 	gShaderList[0]->SetDirectionalLightTransform(gDirectionalLight.CalculateLightTransform());
 
 	gDirectionalLight.GetShadowMap()->Read(GL_TEXTURE1);
@@ -233,7 +233,7 @@ int main() {
 	GLuint wPointLightCount = 0;
 	GLuint wSpotLightCount = 0;
 
-	gDirectionalLight = DirectionalLight{ glm::vec3{1.0,1.0,1.0}, 0.2f, .5f, glm::vec3{2.0,-1.0,-2.0}, 1024, 1024 };
+	gDirectionalLight = DirectionalLight{ glm::vec3{1.0,1.0,1.0}, 0.1f, .6f, glm::vec3{2.0,-15.0,-10.0}, 1024, 1024 };
 
 	gPointLights[0] = PointLight(glm::vec3(0.f, 1.0f, 0.0f), 0.1f, 1.0f, glm::vec3(-4.f, 2.f, 0.f), 0.3f, 0.1f, 0.1f);
 	wPointLightCount++;

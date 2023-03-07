@@ -20,8 +20,10 @@ bool ShadowMap::Init(GLuint iWidth, GLuint iHeight)
 
 	glBindTexture(GL_TEXTURE_2D, mShadowMapTexture);
 
-	glTextureParameteri(mShadowMapTexture, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTextureParameteri(mShadowMapTexture, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTextureParameteri(mShadowMapTexture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTextureParameteri(mShadowMapTexture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	float wColors[] = {1.0f,1.0f,1.0f,1.0f};
+	glTextureParameterfv(mShadowMapTexture, GL_TEXTURE_BORDER_COLOR, wColors);
 	glTextureParameteri(mShadowMapTexture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTextureParameteri(mShadowMapTexture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	

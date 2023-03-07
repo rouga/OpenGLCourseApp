@@ -65,7 +65,27 @@ float CalcDirectionalShadowFactor(DirectionalLight iLight){
 	float wClosestDepth = texture(u_directionalShadowMap, wProjCoords.xy).r;
 	float wModelDepth = wProjCoords.z;
 
-	float wShadow = wModelDepth > wClosestDepth ? 1.0 : 0.0;
+	vec3 wNormal = normalize(v_normal);
+	vec3 wLightDir = normalize(iLight.direction);	
+
+	float wBias = max(0.05 * (1- dot(wNormal, wLightDir)), 0.005);
+
+	float wShadow = 0;
+	vec2 wTexelSize = 1.0 / textureSize(u_directionalShadowMap, 0);
+	for(int x = -1; x <= 1; ++x)
+	{
+		for(int y = -1; y <= 1; ++y)
+		{
+			float wPCFDepth = texture(u_directionalShadowMap, wProjCoords.xy + vec2(x,y) * wTexelSize).r;
+			wShadow += wModelDepth - wBias > wPCFDepth ? 1.0 : 0.0;
+		}
+	}
+
+	wShadow /= 9.0f;
+
+	if(wProjCoords.z > 1.0f){
+		wShadow = 0.0f;
+	}
 
 	return wShadow;
 }

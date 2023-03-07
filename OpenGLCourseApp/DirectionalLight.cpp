@@ -6,7 +6,7 @@ DirectionalLight::DirectionalLight(glm::vec3 iRGB, GLfloat iAmbientIntensity, GL
 	: Light(iRGB, iAmbientIntensity, iDiffuseIntensity, iShadowWidth, iShadowHeight)
 {
 	mDirection = iDirection;
-	mLightProj = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 20.0f);
+	mLightProj = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, 0.1f, 100.0f);
 }
 
 void DirectionalLight::UseLight(GLuint iAmbientColourLocation,
