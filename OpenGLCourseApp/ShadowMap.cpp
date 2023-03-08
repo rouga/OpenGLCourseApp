@@ -56,7 +56,6 @@ bool ShadowMap::Init(GLuint iWidth, GLuint iHeight)
 	}
 
 	return true;
-
 }
 
 void ShadowMap::Write()

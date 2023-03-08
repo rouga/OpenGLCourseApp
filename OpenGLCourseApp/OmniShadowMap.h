@@ -4,5 +4,10 @@
 class OmniShadowMap : public ShadowMap {
 
 public:
-	ShadowMap()
+	OmniShadowMap();
+	
+	bool Init(GLuint iWidth, GLuint iHeight);
+	void Write();
+	void Read(GLenum iTextureUnit);
+
 };

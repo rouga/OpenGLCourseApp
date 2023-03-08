@@ -37,4 +37,12 @@ bool OmniShadowMap::Init(GLuint iWidth, GLuint iHeight)
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 
+	GLenum wStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+	if (wStatus != GL_FRAMEBUFFER_COMPLETE) {
+		printf("Framebuffer error : %i \n", wStatus);
+		return false;
+	}
+
+	return true;
 }
